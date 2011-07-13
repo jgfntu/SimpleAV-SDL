@@ -1,5 +1,5 @@
 /*
- * api.h
+ * SimpleAV_SDL.h
  * Copyright (C) 2011 by Chenguang Wang(wecing)
  *
  * This file is part of SimpleAV.
