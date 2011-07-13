@@ -18,8 +18,8 @@
  * along with SimpleAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SimpleAV/core/core.h"
-#include "SimpleAV/SDL/api.h"
+#include <SimpleAV.h>
+#include "SimpleAV_SDL.h"
 
 #include <stdlib.h>
 #include <libswscale/swscale.h>

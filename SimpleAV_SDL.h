@@ -18,12 +18,13 @@
  * along with SimpleAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SIMPLEAV_SDL_API_H__
-#define __SIMPLEAV_SDL_API_H__
+#ifndef __SIMPLEAV_SDL_H__
+#define __SIMPLEAV_SDL_H__
 
+#include <SDL/SDL.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
-#include "SimpleAV/core/core.h"
+#include <SimpleAV.h>
 
 enum SASDLVideoStatus {
      SASDL_is_playing, SASDL_is_paused, SASDL_is_stopped

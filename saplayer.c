@@ -18,9 +18,10 @@
  * along with SimpleAV. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SimpleAV/SDL/api.h"
 #include <SDL/SDL.h>
 #include <stdio.h>
+
+#include "SimpleAV_SDL.h"
 
 int main(int argc, char *argv[])
 {
