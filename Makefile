@@ -7,7 +7,7 @@ simpleav_sdl_full_links = $(sdl_link) $(simpleav_link) $(libav_link)
 saplayer: SimpleAV_SDL.o saplayer.o
 	gcc -o saplayer SimpleAV_SDL.o saplayer.o $(simpleav_sdl_full_links)
 
-SimpleAV_SDL.o: SimpleAV_SDL.h SimpleAV_SDL.c
+SimpleAV_SDL.o: SimpleAV_SDL.h SimpleAV_SDL.c # SimpleAV_SDL_util.h
 	gcc -c SimpleAV_SDL.c $(simpleav_sdl_full_links)
 
 saplayer.o: SimpleAV_SDL.h saplayer.c
