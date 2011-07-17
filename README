@@ -1,4 +1,5 @@
 SimpleAV-SDL is the SDL binding of SimpleAV, with a futher simplified API.
 It is released under LGPL v3.
 
-Currently still very buggy.
+You could simply compile it with 'make'.
+Currently it will not generate static(or shared) libraries.
