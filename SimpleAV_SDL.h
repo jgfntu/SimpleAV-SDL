@@ -52,6 +52,8 @@ typedef struct SASDLContext {
      // video_start_at is used to handle pausing.
      // it records where to restart when calling SASDL_play()
      // under "paused" or "stopped" mode.
+     //
+     // FIXME: rename it to video_restart_at.
      double video_start_at;
 
      // start_time is used to calculate the video clock.
@@ -120,17 +122,32 @@ int SASDL_close(SASDLContext *);
 void SASDL_play(SASDLContext *);
 
 // FIXME: implement this later
-// set the video to "pausing" mode. it does nothing when not under "playing" mode.
-// void SASDL_pause(SAContext *);
+// set the video to "pausing" mode.
+// under this mode, the audio decoding function will output silence.
+// it does nothing if not under "playing" mode.
+void SASDL_pause(SASDLContext *);
 
-// FIXME: implement this later
-// int SASDL_stop(SAContext *);
+// set the video to "stopped" mode, and seek to the beginning of video.
+// returns immediately when already under "stopped" mode.
+//
+// as SASDL_stop involves seeking, it may fail.
+// it returns a negative value on error.
+int SASDL_stop(SASDLContext *);
 
-// FIXME: implement this later
+// if the requested destination of seeking is out of the video duration,
+// it will be same as calling SASDL_stop().
+//
+// when success:
+//     if called under "stopped" mode, the video status will be set to "paused".
+//     else the video status will stay untouched.
+//
+// currently, SASDL_seek does not do accurate seeking.
+// don't blame me... Hack it if you could do it.
+//
 // *** for developers only:
 // *** seek a little forehead.
 // *** don't forget to get frame_cur.
-// int SASDL_seek(SAContext *, double);
+int SASDL_seek(SASDLContext *, double);
 
 
 

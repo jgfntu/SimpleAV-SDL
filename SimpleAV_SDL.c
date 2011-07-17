@@ -18,11 +18,14 @@
  * along with SimpleAV-SDL. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SimpleAV.h>
-#include "SimpleAV_SDL.h"
+// DEBUG
+#include <stdio.h>
 
 #include <stdlib.h>
 #include <libswscale/swscale.h>
+#include <SimpleAV.h>
+
+#include "SimpleAV_SDL.h"
 
 ////
 //// FIXME: description in this file is out of date.
@@ -146,55 +149,52 @@ void SASDL_play(SASDLContext *sasdl_ctx)
      sasdl_ctx->start_time = SA_get_clock() - sasdl_ctx->video_start_at;
 }
 
-/*
-void SASDL_pause(SAContext *sa_ctx)
+
+void SASDL_pause(SASDLContext *sasdl_ctx)
 {
-     SASDLContext *sasdl_ctx = sa_ctx->lib_data;
      if(sasdl_ctx->status != SASDL_is_playing)
           return;
-     sasdl_ctx->video_start_at = SASDL_get_video_clock(sa_ctx);
      sasdl_ctx->status = SASDL_is_paused;
-     // SDL_PauseAudio(1);
+     sasdl_ctx->video_start_at = SASDL_get_video_clock(sasdl_ctx);
 }
 
-int SASDL_stop(SAContext *sa_ctx)
+int SASDL_stop(SASDLContext *sasdl_ctx)
 {
-     int ret;
-     SASDLContext *sasdl_ctx = sa_ctx->lib_data;
      if(sasdl_ctx->status == SASDL_is_stopped)
           return 0;
      sasdl_ctx->status = SASDL_is_stopped;
      sasdl_ctx->video_start_at = 0.0f;
      
-     //
-     // SASDL_seek() will handle ap in sasdl and aq in core for us.
-     //
-     // but still, we call SDL_PauseAudio(1) here, to make sure it
-     // works correctly.
-     // SDL_PauseAudio(1);
-     ret = SASDL_seek(sa_ctx, 0.0f);
-     
-     return ret;
+     // SASDL_seek will fill frame_cur with black for us.
+     return SASDL_seek(sasdl_ctx, 0.0f);
 }
 
 // currently, SASDL_seek() will return -1 on both EOF and error.
-// so the user should directly stop the video loop when gotting -1.
-int SASDL_seek(SAContext *sa_ctx, double seek_dst)
+// so the user should directly stop the video loop when receiving -1.
+int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
 {
-     if(seek_dst < 0)
-          seek_dst = 0;
-
-     // FIXME: seek forehead a little to do a precise seek
+     if(seek_dst >= SASDL_get_video_duration(sasdl_ctx))
+          return SASDL_stop(sasdl_ctx);
      
-     SASDLContext *sasdl_ctx = sa_ctx->lib_data;
-     SAVideoPacket *vp_cur = sasdl_ctx->vp_cur;
-     SAVideoPacket *vp_next = sasdl_ctx->vp_next;
-     if(vp_cur != NULL)
-          SA_free_vp(vp_cur);
-     if(vp_next != NULL)
-          SA_free_vp(vp_next);
-     sasdl_ctx->vp_cur = sasdl_ctx->vp_next = NULL;
+     if(seek_dst < 0.0f)
+          seek_dst = 0.0f;
 
+     // FIXME: is 5.0f too much?
+     //        any other way to avoid using magic numbers?
+     // double seek_d = seek_dst - 7.0f;
+     // if(seek_d < 0.0f)
+     //      seek_d = 0.0f;
+     //
+     // FIXME: how to seek precisely?
+     double seek_d = seek_dst;
+
+     int ret = SA_seek(sasdl_ctx->sa_ctx, seek_d,
+                       seek_d - sasdl_ctx->frame_next_pts);
+     if(ret < 0)
+          return ret;
+
+     _SASDL_fill_frame_cur_black(sasdl_ctx);
+     
      SDL_mutexP(sasdl_ctx->ap_lock);
      SAAudioPacket *ap = sasdl_ctx->ap;
      if(ap != NULL)
@@ -204,35 +204,51 @@ int SASDL_seek(SAContext *sa_ctx, double seek_dst)
           sasdl_ctx->audio_buf_index = 0;
      }
 
-     int ret = SA_seek(sa_ctx, seek_dst,
-                       seek_dst - sasdl_ctx->last_pts);
-     
-     sasdl_ctx->vp_cur = vp_cur = SA_get_vp(sa_ctx);
-     if(vp_cur == NULL)
-     {
-          SDL_mutexV(sasdl_ctx->ap_lock);
-          return -1; // FIXME: EOF? seeking error?
+     // FIXME: not accurate seeking.
+     SAVideoPacket *vp = SA_get_vp(sasdl_ctx->sa_ctx);
+     if(vp == NULL) {
+          sasdl_ctx->video_eof = TRUE;
+          sasdl_ctx->frame_next = NULL;
+          return -1;
+     } else {
+          sasdl_ctx->frame_next = vp->frame_ptr;
+          sasdl_ctx->frame_next_pts = vp->pts;
+          SA_free_vp(vp);
+
+          _SASDL_convert_frame_next_to_cur(sasdl_ctx);
      }
-     vp_next = sasdl_ctx->vp_next = SA_get_vp(sa_ctx);
 
-     // FIXME: what if vp_cur->pts is...????????????
-     sasdl_ctx->last_pts = vp_cur->pts;
-     sasdl_ctx->video_start_at = vp_cur->pts;
-     if(sasdl_ctx->status == SASDL_is_playing)
-          sasdl_ctx->start_time = SA_get_clock() - vp_cur->pts;
-     else if(sasdl_ctx->status == SASDL_is_stopped)
-          sasdl_ctx->status = SASDL_is_paused;
-
-     // FIXME:
-     //
-     // if paused: draw()
-     // else if stopped: draw black
+     // the real destination we reached.
+     seek_dst = sasdl_ctx->frame_next_pts;
      
+     ap = SA_get_ap(sasdl_ctx->sa_ctx);
+     if(ap == NULL) {
+          sasdl_ctx->audio_eof = TRUE;
+     } else {
+          while(ap->pts < seek_dst) {
+               SA_free_ap(ap);
+               ap = SA_get_ap(sasdl_ctx->sa_ctx);
+               if(ap == NULL) {
+                    sasdl_ctx->audio_eof = TRUE;
+                    break;
+               }
+          }
+          sasdl_ctx->ap = ap;
+     }
      SDL_mutexV(sasdl_ctx->ap_lock);
+
+     if(sasdl_ctx->status == SASDL_is_playing)
+          sasdl_ctx->start_time = SA_get_clock() - seek_dst;
+     else {
+          sasdl_ctx->video_start_at = seek_dst;
+          if(sasdl_ctx->status == SASDL_is_stopped)
+               sasdl_ctx->status = SASDL_is_paused;
+     }
+
      return ret;
 }
 
-*/
+
 
 /*
  * SASDL_draw() always draw the correct frame,

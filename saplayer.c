@@ -58,14 +58,11 @@ int main(int argc, char *argv[])
           SDL_Flip(screen);
 
           while(get_event(&event))
-               if(event.type == SDL_QUIT)
-               {
+               if(event.type == SDL_QUIT) {
                     SASDL_close(sasdl_ctx);
                     goto PROGRAM_QUIT;
-               } /* else if(event.type == SDL_KEYDOWN)
-               {
-                    switch(event.key.keysym.sym)
-                    {
+               } else if(event.type == SDL_KEYDOWN) {
+                    switch(event.key.keysym.sym) {
                     case SDLK_LEFT:
                          delta = -10.0;
                          break;
@@ -101,16 +98,16 @@ int main(int argc, char *argv[])
                          continue;
                     }
 
-                    if(SASDL_seek(sa_ctx, SASDL_get_video_clock(sa_ctx) + delta) < 0)
+                    if(SASDL_seek(sasdl_ctx, SASDL_get_video_clock(sasdl_ctx) + delta) < 0)
                     {
-                         SASDL_close(sa_ctx);
+                         SASDL_close(sasdl_ctx);
                          goto PROGRAM_QUIT;
                     }
 
-                    SASDL_draw(sa_ctx, screen);
+                    SASDL_draw(sasdl_ctx, screen);
                     SDL_Flip(screen);
                }
-                 */
+
           SASDL_wait_for_next_frame(sasdl_ctx);
      NEXT_LOOP:;
      }
