@@ -18,9 +18,6 @@
  * along with SimpleAV-SDL. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// DEBUG
-#include <stdio.h>
-
 #include <stdlib.h>
 #include <libswscale/swscale.h>
 #include <SimpleAV.h>
@@ -82,27 +79,6 @@ SASDLContext *SASDL_open(char *filename)
           sasdl_ctx->swsctx = swsctx;
 
      sasdl_ctx->ap_lock = SDL_CreateMutex();
-
-     /*
-     SDL_AudioSpec wanted_spec;
-     wanted_spec.freq = sa_ctx->a_codec_ctx->sample_rate;
-     wanted_spec.format = AUDIO_S16SYS;
-     wanted_spec.channels = sa_ctx->a_codec_ctx->channels;
-     wanted_spec.silence = 0;
-     wanted_spec.samples = 512;
-     wanted_spec.callback = SASDL_audio_callback; // FIXME: set user's own callback?
-     wanted_spec.userdata = sa_ctx;
-
-     if(SDL_OpenAudio(&wanted_spec, NULL) < 0)
-     {
-          fprintf(stderr, "SDL_OpenAudio: %s\n", SDL_GetError());
-          SASDL_close(sa_ctx);
-          return NULL;
-     }
-
-     // don't forget to call SDL_CloseAudio().
-     */
-
      sasdl_ctx->frame_cur = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
                                                  0, 0, 0, 0);
      if(sasdl_ctx->frame_cur == NULL) {
@@ -179,22 +155,12 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
      if(seek_dst < 0.0f)
           seek_dst = 0.0f;
 
-     // FIXME: is 5.0f too much?
-     //        any other way to avoid using magic numbers?
-     // double seek_d = seek_dst - 7.0f;
-     // if(seek_d < 0.0f)
-     //      seek_d = 0.0f;
-     //
      // FIXME: how to seek precisely?
-     double seek_d = seek_dst;
-
-     int ret = SA_seek(sasdl_ctx->sa_ctx, seek_d,
-                       seek_d - sasdl_ctx->frame_next_pts);
+     int ret = SA_seek(sasdl_ctx->sa_ctx, seek_dst,
+                       seek_dst - sasdl_ctx->frame_next_pts);
      if(ret < 0)
           return ret;
 
-     _SASDL_fill_frame_cur_black(sasdl_ctx);
-     
      SDL_mutexP(sasdl_ctx->ap_lock);
      SAAudioPacket *ap = sasdl_ctx->ap;
      if(ap != NULL)
@@ -215,7 +181,10 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
           sasdl_ctx->frame_next_pts = vp->pts;
           SA_free_vp(vp);
 
-          _SASDL_convert_frame_next_to_cur(sasdl_ctx);
+          if(seek_dst != 0.0f)
+               _SASDL_convert_frame_next_to_cur(sasdl_ctx);
+          else
+               _SASDL_fill_frame_cur_black(sasdl_ctx);
      }
 
      // the real destination we reached.
@@ -316,14 +285,15 @@ void SASDL_wait_for_next_frame(SASDLContext *sasdl_ctx)
 // but NOT sa_ctx!!!!!!!!
 //
 // output silence if encountered audio EOF.
-/*
 void SASDL_audio_decode(void *data, uint8_t *stream, int len)
 {
-     // FIXME: not finished yet.
-     
-     // FIXME: detect video status and call SDL_AudioPause() here?
-     SAContext *sa_ctx = data;
-     SASDLContext *sasdl_ctx = sa_ctx->lib_data;
+     SASDLContext *sasdl_ctx = data;
+     SAContext *sa_ctx = sasdl_ctx->sa_ctx;
+
+     if(sasdl_ctx->audio_eof || sasdl_ctx->status != SASDL_is_playing) {
+          memset(stream, 0, len);
+          return;
+     }
      
      SDL_mutexP(sasdl_ctx->ap_lock);
      
@@ -332,12 +302,6 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
      unsigned int size_to_copy = 0;
      double size_per_sec = 2 * sa_ctx->a_codec_ctx->channels *
                            sa_ctx->a_codec_ctx->sample_rate;
-     if(sa_ctx->audio_eof)
-     {
-          SDL_PauseAudio(1);
-          SDL_mutexV(sasdl_ctx->ap_lock);
-          return;
-     }
 
      while(len > 0)
      {
@@ -346,22 +310,15 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
 
           if(ap == NULL)
           {
-               sa_ctx->audio_eof = 1;
+               sasdl_ctx->audio_eof = TRUE;
                memset(stream, 0, len);
-               SDL_PauseAudio(1);
-               sasdl_ctx->ap = ap;
+               sasdl_ctx->ap = NULL;
                sasdl_ctx->audio_buf_index = audio_buf_index;
                SDL_mutexV(sasdl_ctx->ap_lock);
                return; // FIXME: *MAYBE* eof encountered. what if... ?
           }
 
-          // DEBUG
-          // double t = ap->pts - SASDL_get_video_clock(sa_ctx);
-          // if(t < 0) t = -t;
-          // printf("%f\n", t);
-          // printf("%f\n", ap->pts);
-          
-          double delay = ap->pts - SASDL_get_video_clock(sa_ctx);
+          double delay = ap->pts - SASDL_get_video_clock(sasdl_ctx);
           if(-SASDL_AUDIO_ADJUST_THRESHOLD <= delay &&
              delay <= SASDL_AUDIO_ADJUST_THRESHOLD)
                delay = 0.0f;
@@ -377,11 +334,9 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           {
                audio_buf_index -= delay_size;
                
-               // copy the code directly to prevent infinite looping
                if(audio_buf_index >= ap->len)
                {
-                    av_free(ap->abuffer);
-                    free(ap);
+                    SA_free_ap(ap);
                     ap = NULL;
                     audio_buf_index = 0;
                     continue;
@@ -398,8 +353,7 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
 
           if(audio_buf_index >= ap->len)
           {
-               av_free(ap->abuffer);
-               free(ap);
+               SA_free_ap(ap);
                ap = NULL;
                audio_buf_index = 0;
           }
@@ -409,7 +363,7 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
      sasdl_ctx->audio_buf_index = audio_buf_index;
      SDL_mutexV(sasdl_ctx->ap_lock);
 }
-*/
+
 
 /*
  * other functions - welcome to the easy part!

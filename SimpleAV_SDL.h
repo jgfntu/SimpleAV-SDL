@@ -67,12 +67,19 @@ typedef struct SASDLContext {
      // 
      // start_time is used only under "playing" mode.
      double start_time;
-     
+
+     // this is used to convert AVFrame.
+     // it should be freed using sws_freeContext,
+     // but dranger forgot to do so... :-P
      struct SwsContext *swsctx;
      
-     SAAudioPacket *ap; // FIXME: should ap be locked?
+     // FIXME: should ap be locked?
      // or, will SDL_PauseAudio(1) kill the audio callback function if it is executing?
-     SDL_mutex *ap_lock; // FIXME: why not SAMutex?
+     SAAudioPacket *ap;
+     // FIXME: why not SAMutex?
+     SDL_mutex *ap_lock;
+     // audio_buf_index records how much data is used in ap.
+     unsigned int audio_buf_index;
 
      // we will ensure frame_next == NULL when video_eof == TRUE.
      // and frame_next_pts will be an arbitrary value.
@@ -82,11 +89,12 @@ typedef struct SASDLContext {
      SDL_Surface *frame_cur;
      AVFrame *frame_next;
      double frame_next_pts;
-     
-     unsigned int audio_buf_index;
 
+     // they should be either TRUE or FALSE.
+     // (PS: wecing defined TRUE as 1, and FALSE as 0.)
      int video_eof, audio_eof;
 
+     // i know you know i know you know this.
      SAContext *sa_ctx;
 } SASDLContext;
 
@@ -121,7 +129,6 @@ int SASDL_close(SASDLContext *);
 // already under "playing" mode.
 void SASDL_play(SASDLContext *);
 
-// FIXME: implement this later
 // set the video to "pausing" mode.
 // under this mode, the audio decoding function will output silence.
 // it does nothing if not under "playing" mode.

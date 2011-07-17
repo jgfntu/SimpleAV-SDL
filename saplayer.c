@@ -41,6 +41,26 @@ int main(int argc, char *argv[])
           return 1;
      }
 
+     SDL_AudioSpec wanted_spec;
+     // FIXME: this looks dirty. I HATE IT.
+     wanted_spec.freq = sasdl_ctx->sa_ctx->a_codec_ctx->sample_rate;
+     wanted_spec.format = AUDIO_S16SYS;
+     wanted_spec.channels = sasdl_ctx->sa_ctx->a_codec_ctx->channels;
+     wanted_spec.silence = 0;
+     wanted_spec.samples = 512;
+     // set your own callback here if you like.
+     wanted_spec.callback = SASDL_audio_decode;
+     wanted_spec.userdata = sasdl_ctx;
+
+     if(SDL_OpenAudio(&wanted_spec, NULL) < 0)
+     {
+          fprintf(stderr, "SDL_OpenAudio: %s\n", SDL_GetError());
+          SASDL_close(sasdl_ctx);
+          SDL_Quit();
+          return 1;
+     }
+     SDL_PauseAudio(0);
+
      double delta = 0.0f;
      SDL_Event event;
      int width = SASDL_get_width(sasdl_ctx);
@@ -113,6 +133,7 @@ int main(int argc, char *argv[])
      }
                     
 PROGRAM_QUIT:
+     SDL_CloseAudio();
      SDL_Quit();
      return 0;
 }
