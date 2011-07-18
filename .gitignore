@@ -1,4 +1,4 @@
 *.o
 *~
 saplayer
-SimpleAV_SDL.a
+libSimpleAV_SDL.a
