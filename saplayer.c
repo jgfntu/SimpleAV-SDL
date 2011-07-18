@@ -41,6 +41,10 @@ int main(int argc, char *argv[])
           return 1;
      }
 
+     // or use Mix_SetPostMix, if you like.
+     // but remember to call Mix_SetPostMix(NULL, NULL) or
+     // Mix_CloseAudio() before calling SASDL_Close().
+
      SDL_AudioSpec wanted_spec;
      // FIXME: this looks dirty. I HATE IT.
      wanted_spec.freq = sasdl_ctx->sa_ctx->a_codec_ctx->sample_rate;
