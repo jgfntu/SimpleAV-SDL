@@ -1,5 +1,5 @@
 libav_link = `pkg-config --libs libavcodec libavformat libavutil libswscale`
-sdl_link = -lSDL
+sdl_link = -lSDL -lSDL_mixer
 simpleav_link = -lSimpleAV
 
 simpleav_sdl_full_links = $(sdl_link) $(simpleav_link) $(libav_link)
