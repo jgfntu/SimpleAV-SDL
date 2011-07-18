@@ -24,11 +24,6 @@
 
 #include "SimpleAV_SDL.h"
 
-////
-//// FIXME: description in this file is out of date.
-////      update them now.
-////
-
 int SASDL_init(void)
 {
      // FIXME: "silent" mode?
