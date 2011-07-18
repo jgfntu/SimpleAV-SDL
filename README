@@ -2,4 +2,6 @@ SimpleAV-SDL is the SDL binding of SimpleAV, with a futher simplified API.
 It is released under LGPL v3.
 
 You could simply compile it with 'make'.
-Currently it will not generate static(or shared) libraries.
+Call 'make install' under root to install.
+
+To use SimpleAV-SDL in your own program, just add -lSimpleAV_SDL when calling gcc.
