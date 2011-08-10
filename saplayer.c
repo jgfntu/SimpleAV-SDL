@@ -19,6 +19,7 @@
  */
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include <stdio.h>
 
 #include "SimpleAV_SDL.h"
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
           return 1;
      }
      
-     SDL_Init(SDL_INIT_EVERYTHING);
+     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
      SASDL_init();
      SASDLContext *sasdl_ctx = SASDL_open(argv[1]);
      if(sasdl_ctx == NULL)
@@ -41,29 +42,15 @@ int main(int argc, char *argv[])
           return 1;
      }
 
-     // or use Mix_SetPostMix, if you like.
-     // but remember to call Mix_SetPostMix(NULL, NULL) or
-     // Mix_CloseAudio() before calling SASDL_Close().
-
-     SDL_AudioSpec wanted_spec;
-     // FIXME: this looks dirty. I HATE IT.
-     wanted_spec.freq = sasdl_ctx->sa_ctx->a_codec_ctx->sample_rate;
-     wanted_spec.format = AUDIO_S16SYS;
-     wanted_spec.channels = sasdl_ctx->sa_ctx->a_codec_ctx->channels;
-     wanted_spec.silence = 0;
-     wanted_spec.samples = 512;
-     // set your own callback here if you like.
-     wanted_spec.callback = SASDL_audio_decode;
-     wanted_spec.userdata = sasdl_ctx;
-
-     if(SDL_OpenAudio(&wanted_spec, NULL) < 0)
-     {
+     // still very ugly...
+     if(Mix_OpenAudio(sasdl_ctx->sa_ctx->a_codec_ctx->sample_rate, AUDIO_S16SYS,
+                      sasdl_ctx->sa_ctx->a_codec_ctx->channels, 512) < 0) {
           fprintf(stderr, "SDL_OpenAudio: %s\n", SDL_GetError());
           SASDL_close(sasdl_ctx);
           SDL_Quit();
           return 1;
      }
-     SDL_PauseAudio(0);
+     Mix_SetPostMix(SASDL_audio_decode, sasdl_ctx);
 
      double delta = 0.0f;
      SDL_Event event;
@@ -83,6 +70,7 @@ int main(int argc, char *argv[])
 
           while(get_event(&event))
                if(event.type == SDL_QUIT) {
+                    Mix_CloseAudio();
                     SASDL_close(sasdl_ctx);
                     goto PROGRAM_QUIT;
                } else if(event.type == SDL_KEYDOWN) {
@@ -124,6 +112,7 @@ int main(int argc, char *argv[])
 
                     if(SASDL_seek(sasdl_ctx, SASDL_get_video_clock(sasdl_ctx) + delta) < 0)
                     {
+                         Mix_CloseAudio();
                          SASDL_close(sasdl_ctx);
                          goto PROGRAM_QUIT;
                     }
@@ -137,7 +126,6 @@ int main(int argc, char *argv[])
      }
                     
 PROGRAM_QUIT:
-     SDL_CloseAudio();
      SDL_Quit();
      return 0;
 }

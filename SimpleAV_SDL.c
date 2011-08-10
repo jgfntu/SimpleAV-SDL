@@ -289,7 +289,7 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           memset(stream, 0, len);
           return;
      }
-     
+
      SDL_mutexP(sasdl_ctx->ap_lock);
      
      SAAudioPacket *ap = sasdl_ctx->ap;
