@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 
      double delta = 0.0f;
      SDL_Event event;
-     int width = SASDL_get_width(sasdl_ctx);
-     int height = SASDL_get_height(sasdl_ctx);
+     int width = SASDL_get_video_width(sasdl_ctx);
+     int height = SASDL_get_video_height(sasdl_ctx);
      
      SDL_Surface *screen = SDL_SetVideoMode(width, height, 32, SDL_SWSURFACE);
      int (*get_event)(SDL_Event *) = SDL_PollEvent;
