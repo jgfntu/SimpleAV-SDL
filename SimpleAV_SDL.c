@@ -57,8 +57,8 @@ SASDLContext *SASDL_open(char *filename)
           sasdl_ctx->sa_ctx = sa_ctx;
      }
      
-     int width = SASDL_get_width(sasdl_ctx);
-     int height = SASDL_get_height(sasdl_ctx);
+     int width = SASDL_get_video_width(sasdl_ctx);
+     int height = SASDL_get_video_height(sasdl_ctx);
 
      // FIXME: is SWS_FAST_BILINEAR the fastest?
      //        we don't change the size here. so speed is everything.
@@ -364,12 +364,12 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
  * other functions - welcome to the easy part!
  */
 
-int SASDL_get_width(SASDLContext *sasdl_ctx)
+int SASDL_get_video_width(SASDLContext *sasdl_ctx)
 {
      return SA_get_width(sasdl_ctx->sa_ctx);
 }
 
-int SASDL_get_height(SASDLContext *sasdl_ctx)
+int SASDL_get_video_height(SASDLContext *sasdl_ctx)
 {
      return SA_get_height(sasdl_ctx->sa_ctx);
 }
@@ -408,7 +408,7 @@ void _SASDL_convert_frame_next_to_cur(SASDLContext *sasdl_ctx)
 {
      AVFrame *frame = sasdl_ctx->frame_next;
      SDL_Surface *surface = sasdl_ctx->frame_cur;
-     int h = SASDL_get_height(sasdl_ctx);
+     int h = SASDL_get_video_height(sasdl_ctx);
      
      SDL_LockSurface(surface);
      AVPicture pict;
@@ -423,7 +423,7 @@ void _SASDL_fill_frame_cur_black(SASDLContext *sasdl_ctx)
 {
      SDL_Rect full_screen = {
           .x = 0, .y = 0,
-          .w = SASDL_get_width(sasdl_ctx), .h = SASDL_get_height(sasdl_ctx)
+          .w = SASDL_get_video_width(sasdl_ctx), .h = SASDL_get_video_height(sasdl_ctx)
      };
      
      SDL_FillRect(sasdl_ctx->frame_cur, &full_screen, 0x000000);
