@@ -125,8 +125,8 @@ void SASDL_pause(SASDLContext *sasdl_ctx)
 {
      if(sasdl_ctx->status != SASDL_is_playing)
           return;
-     sasdl_ctx->status = SASDL_is_paused;
      sasdl_ctx->video_start_at = SASDL_get_video_clock(sasdl_ctx);
+     sasdl_ctx->status = SASDL_is_paused;
 }
 
 int SASDL_stop(SASDLContext *sasdl_ctx)
