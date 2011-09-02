@@ -250,7 +250,7 @@ void SASDL_draw(SASDLContext *sasdl_ctx, SDL_Surface *surface)
                _SASDL_convert_frame_next_to_cur(sasdl_ctx);
           }
      }
-     
+
      SDL_BlitSurface(sasdl_ctx->frame_cur, NULL, surface, NULL);
      return;
 }

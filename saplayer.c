@@ -32,7 +32,9 @@ int main(int argc, char *argv[])
           return 1;
      }
      
-     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+     // FIXME: add SDL_INIT_EVENTTHREAD on Windows and Mac?
+     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+     
      SASDL_init();
      SASDLContext *sasdl_ctx = SASDL_open(argv[1]);
      if(sasdl_ctx == NULL)
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
      // still very ugly...
      if(Mix_OpenAudio(sasdl_ctx->sa_ctx->a_codec_ctx->sample_rate, AUDIO_S16SYS,
                       sasdl_ctx->sa_ctx->a_codec_ctx->channels, 512) < 0) {
-          fprintf(stderr, "SDL_OpenAudio: %s\n", SDL_GetError());
+          fprintf(stderr, "Mix_OpenAudio: %s\n", SDL_GetError());
           SASDL_close(sasdl_ctx);
           SDL_Quit();
           return 1;
@@ -62,7 +64,7 @@ int main(int argc, char *argv[])
      
      printf("video duration: %.3fs\n", SASDL_get_video_duration(sasdl_ctx));
      SASDL_play(sasdl_ctx);
-     
+
      while(SASDL_eof(sasdl_ctx) == FALSE)
      {
           SASDL_draw(sasdl_ctx, screen);
