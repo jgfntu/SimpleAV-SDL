@@ -10,6 +10,10 @@
 #ifndef __SIMPLEAV_SDL_H__DEFINED__
 #define __SIMPLEAV_SDL_H__DEFINED__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <SDL/SDL.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
@@ -212,4 +216,8 @@ void _SASDL_convert_frame_next_to_cur(SASDLContext *);
 // currently only used in SASDL_draw() under "stopped" mode.
 void _SASDL_fill_frame_cur_black(SASDLContext *);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

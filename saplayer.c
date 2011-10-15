@@ -7,6 +7,10 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 #include <stdio.h>
@@ -120,3 +124,7 @@ PROGRAM_QUIT:
      SDL_Quit();
      return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif

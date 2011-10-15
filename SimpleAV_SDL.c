@@ -7,6 +7,10 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <libswscale/swscale.h>
 #include <SimpleAV.h>
@@ -417,3 +421,6 @@ void _SASDL_fill_frame_cur_black(SASDLContext *sasdl_ctx)
      
      SDL_FillRect(sasdl_ctx->frame_cur, &full_screen, 0x000000);
 }
+#ifdef __cplusplus
+}
+#endif
