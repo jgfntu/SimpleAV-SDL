@@ -44,8 +44,8 @@ SASDLContext *SASDL_open(char *filename)
           memset(sasdl_ctx, 0, sizeof(SASDLContext));
           
           sasdl_ctx->status = SASDL_is_stopped;
-          sasdl_ctx->video_start_at = 0.0f;
-          sasdl_ctx->start_time = 0.0f;
+          sasdl_ctx->video_restart_at = 0.0f;
+          // sasdl_ctx->start_time = 0.0f;
           
           sasdl_ctx->sa_ctx = sa_ctx;
      }
@@ -110,7 +110,8 @@ void SASDL_play(SASDLContext *sasdl_ctx)
      if(sasdl_ctx->status == SASDL_is_playing)
           return;
      sasdl_ctx->status = SASDL_is_playing;
-     sasdl_ctx->start_time = SA_get_clock() - sasdl_ctx->video_start_at;
+     // sasdl_ctx->start_time = SA_get_clock() - sasdl_ctx->video_restart_at;
+     sasdl_ctx->start_time = av_gettime() - (int64_t)((sasdl_ctx->video_restart_at) * 1000000.0f);
 }
 
 
@@ -118,7 +119,7 @@ void SASDL_pause(SASDLContext *sasdl_ctx)
 {
      if(sasdl_ctx->status != SASDL_is_playing)
           return;
-     sasdl_ctx->video_start_at = SASDL_get_video_clock(sasdl_ctx);
+     sasdl_ctx->video_restart_at = SASDL_get_video_clock(sasdl_ctx);
      sasdl_ctx->status = SASDL_is_paused;
 }
 
@@ -127,7 +128,7 @@ int SASDL_stop(SASDLContext *sasdl_ctx)
      if(sasdl_ctx->status == SASDL_is_stopped)
           return 0;
      sasdl_ctx->status = SASDL_is_stopped;
-     sasdl_ctx->video_start_at = 0.0f;
+     sasdl_ctx->video_restart_at = 0.0f;
      
      // SASDL_seek will fill frame_cur with black for us.
      return SASDL_seek(sasdl_ctx, 0.0f);
@@ -195,9 +196,10 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
      SDL_mutexV(sasdl_ctx->ap_lock);
 
      if(sasdl_ctx->status == SASDL_is_playing)
-          sasdl_ctx->start_time = SA_get_clock() - seek_dst;
+          // sasdl_ctx->start_time = SA_get_clock() - seek_dst;
+          sasdl_ctx->start_time = av_gettime() - (int64_t)(seek_dst * 1000000.0f);
      else {
-          sasdl_ctx->video_start_at = seek_dst;
+          sasdl_ctx->video_restart_at = seek_dst;
           if(sasdl_ctx->status == SASDL_is_stopped)
                sasdl_ctx->status = SASDL_is_paused;
      }
@@ -375,9 +377,10 @@ double SASDL_get_video_duration(SASDLContext *sasdl_ctx)
 double SASDL_get_video_clock(SASDLContext *sasdl_ctx)
 {
      if(sasdl_ctx->status == SASDL_is_playing)
-          return SA_get_clock() - sasdl_ctx->start_time;
+          // return SA_get_clock() - sasdl_ctx->start_time;
+          return (double)(av_gettime() - sasdl_ctx->start_time) / (double)1000000.0f;
      if(sasdl_ctx->status == SASDL_is_paused)
-          return sasdl_ctx->video_start_at;
+          return sasdl_ctx->video_restart_at;
      
      // status == SASDL_is_stopped, or source code hacked
      return 0.0f;

@@ -47,7 +47,7 @@ typedef struct SASDLContext {
      // under "paused" or "stopped" mode.
      //
      // FIXME: rename it to video_restart_at.
-     double video_start_at;
+     double video_restart_at;
 
      // start_time is used to calculate the video clock.
      // in other words, "where we are now".
@@ -59,7 +59,7 @@ typedef struct SASDLContext {
      // video_clock == SA_get_clock() - start_time
      // 
      // start_time is used only under "playing" mode.
-     double start_time;
+     int64_t start_time;
 
      // this is used to convert AVFrame.
      // it should be freed using sws_freeContext,
