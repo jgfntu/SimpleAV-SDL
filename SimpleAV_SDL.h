@@ -10,9 +10,18 @@
 #ifndef __SIMPLEAV_SDL_H__DEFINED__
 #define __SIMPLEAV_SDL_H__DEFINED__
 
+
 #ifdef __cplusplus
+// FIXME: should this be added to SimpleAV as well?
+// dirty hack for C++
+#ifndef INT64_C
+#define INT64_C(c) (c ## LL)
+#define UINT64_C(c) (c ## ULL)
+#endif
+
 extern "C" {
 #endif
+
 
 #include <SDL/SDL.h>
 #include <libavcodec/avcodec.h>
