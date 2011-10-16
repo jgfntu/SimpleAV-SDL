@@ -210,6 +210,12 @@ double SASDL_get_video_clock(SASDLContext *);
 // it will return one of SASDL_is_playing, SASDL_is_paused, and SASDL_is_stopped.
 enum SASDLVideoStatus SASDL_get_video_status(SASDLContext *);
 
+int SASDL_video_is_playing(SASDLContext *);
+
+int SASDL_video_is_paused(SASDLContext *);
+
+int SASDL_video_is_stopped(SASDLContext *);
+
 // it will return true only when (sa_ctx->video_eof && sa_ctx->audio_eof) is true.
 int SASDL_eof(SASDLContext *);
 

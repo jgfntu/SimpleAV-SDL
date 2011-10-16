@@ -1,0 +1,2 @@
+1. When stopping the video and resume, the program will produce some noise.
+   Maybe we should do something to the audio cache?

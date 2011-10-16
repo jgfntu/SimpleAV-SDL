@@ -130,7 +130,13 @@ int SASDL_stop(SASDLContext *sasdl_ctx)
      sasdl_ctx->video_restart_at = 0.0f;
      
      // SASDL_seek will fill frame_cur with black for us.
-     return SASDL_seek(sasdl_ctx, 0.0f);
+     int ret = SASDL_seek(sasdl_ctx, 0.0f);
+
+     // SASDL_seek() will set the video status to paused if it is stopped;
+     // so we need to set it back to stopped here.
+     sasdl_ctx->status = SASDL_is_stopped;
+     
+     return ret;
 }
 
 // currently, SASDL_seek() will return -1 on both EOF and error.
@@ -378,14 +384,27 @@ double SASDL_get_video_clock(SASDLContext *sasdl_ctx)
           return (double)(av_gettime() - sasdl_ctx->start_time) / (double)1000000.0f;
      if(sasdl_ctx->status == SASDL_is_paused)
           return sasdl_ctx->video_restart_at;
-     
-     // status == SASDL_is_stopped, or source code hacked
      return 0.0f;
 }
 
 enum SASDLVideoStatus SASDL_get_video_status(SASDLContext *sasdl_ctx)
 {
      return sasdl_ctx->status;
+}
+
+int SASDL_video_is_playing(SASDLContext *sasdl_ctx)
+{
+     return sasdl_ctx->status == SASDL_is_playing ? 1 : 0;
+}
+
+int SASDL_video_is_paused(SASDLContext *sasdl_ctx)
+{
+     return sasdl_ctx->status == SASDL_is_paused ? 1 : 0;
+}
+
+int SASDL_video_is_stopped(SASDLContext *sasdl_ctx)
+{
+     return sasdl_ctx->status == SASDL_is_stopped ? 1 : 0;
 }
 
 int SASDL_eof(SASDLContext *sasdl_ctx)
