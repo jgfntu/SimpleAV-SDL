@@ -65,8 +65,6 @@ int main(int argc, char *argv[])
 
           while(get_event(&event))
                if(event.type == SDL_QUIT) {
-                    Mix_CloseAudio();
-                    SASDL_close(sasdl_ctx);
                     goto PROGRAM_QUIT;
                } else if(event.type == SDL_KEYDOWN) {
                     switch(event.key.keysym.sym) {
@@ -106,11 +104,7 @@ int main(int argc, char *argv[])
                     }
 
                     if(SASDL_seek(sasdl_ctx, SASDL_get_video_clock(sasdl_ctx) + delta) < 0)
-                    {
-                         Mix_CloseAudio();
-                         SASDL_close(sasdl_ctx);
                          goto PROGRAM_QUIT;
-                    }
 
                     SASDL_draw(sasdl_ctx, screen);
                     SDL_Flip(screen);
@@ -119,9 +113,12 @@ int main(int argc, char *argv[])
           SASDL_wait_for_next_frame(sasdl_ctx);
      NEXT_LOOP:;
      }
-                    
+
 PROGRAM_QUIT:
+     Mix_CloseAudio();
+     SASDL_close(sasdl_ctx);
      SDL_Quit();
+     
      return 0;
 }
 
