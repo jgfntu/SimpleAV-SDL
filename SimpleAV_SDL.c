@@ -110,7 +110,6 @@ void SASDL_play(SASDLContext *sasdl_ctx)
      if(sasdl_ctx->status == SASDL_is_playing)
           return;
      sasdl_ctx->status = SASDL_is_playing;
-     // sasdl_ctx->start_time = SA_get_clock() - sasdl_ctx->video_restart_at;
      sasdl_ctx->start_time = av_gettime() - (int64_t)((sasdl_ctx->video_restart_at) * 1000000.0f);
 }
 
@@ -196,7 +195,6 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
      SDL_mutexV(sasdl_ctx->ap_lock);
 
      if(sasdl_ctx->status == SASDL_is_playing)
-          // sasdl_ctx->start_time = SA_get_clock() - seek_dst;
           sasdl_ctx->start_time = av_gettime() - (int64_t)(seek_dst * 1000000.0f);
      else {
           sasdl_ctx->video_restart_at = seek_dst;
@@ -377,7 +375,6 @@ double SASDL_get_video_duration(SASDLContext *sasdl_ctx)
 double SASDL_get_video_clock(SASDLContext *sasdl_ctx)
 {
      if(sasdl_ctx->status == SASDL_is_playing)
-          // return SA_get_clock() - sasdl_ctx->start_time;
           return (double)(av_gettime() - sasdl_ctx->start_time) / (double)1000000.0f;
      if(sasdl_ctx->status == SASDL_is_paused)
           return sasdl_ctx->video_restart_at;
