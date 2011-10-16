@@ -208,6 +208,13 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
                sasdl_ctx->status = SASDL_is_paused;
      }
 
+     if(seek_dst < SASDL_get_video_duration(sasdl_ctx)) {
+          sasdl_ctx->video_eof = sasdl_ctx->audio_eof = FALSE;
+     } else {
+          sasdl_ctx->video_eof = sasdl_ctx->audio_eof = TRUE;
+          SASDL_stop(sasdl_ctx);
+     }
+
      return ret;
 }
 
