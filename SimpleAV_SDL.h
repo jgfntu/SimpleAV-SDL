@@ -96,6 +96,10 @@ typedef struct SASDLContext {
      // (PS: wecing defined TRUE as 1, and FALSE as 0.)
      int video_eof, audio_eof;
 
+     // this controls whether SASDL_audio_decoder will overwrite data in the stream or not.
+     // default value is FALSE: overwrite.
+     int audio_decode_mix;
+
      // i know you know i know you know this.
      SAContext *sa_ctx;
 } SASDLContext;

@@ -292,7 +292,8 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
      SAContext *sa_ctx = sasdl_ctx->sa_ctx;
 
      if(sasdl_ctx->audio_eof || sasdl_ctx->status != SASDL_is_playing) {
-          memset(stream, 0, len);
+          if(sasdl_ctx->audio_decode_mix == FALSE)
+               memset(stream, 0, len);
           return;
      }
 
@@ -312,7 +313,8 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           if(ap == NULL)
           {
                sasdl_ctx->audio_eof = TRUE;
-               memset(stream, 0, len);
+               if(sasdl_ctx->audio_decode_mix == FALSE)
+                    memset(stream, 0, len);
                sasdl_ctx->ap = NULL;
                sasdl_ctx->audio_buf_index = audio_buf_index;
                SDL_mutexV(sasdl_ctx->ap_lock);
@@ -327,7 +329,8 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           if(delay_size > 0) // 'wait' for the external clock
           {
                int silent_size = len < delay_size ? len : delay_size;
-               memset(stream, 0, silent_size);
+               if(sasdl_ctx->audio_decode_mix == FALSE)
+                    memset(stream, 0, silent_size);
                len -= silent_size;
                stream += silent_size;
                continue;
@@ -346,7 +349,11 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           
           size_to_copy = len < (ap->len - audio_buf_index) ?
                len : (ap->len - audio_buf_index);
-          memcpy(stream, ap->abuffer + audio_buf_index, size_to_copy);
+          if(sasdl_ctx->audio_decode_mix == FALSE) {
+               memcpy(stream, ap->abuffer + audio_buf_index, size_to_copy);
+          } else {
+               SDL_MixAudio(stream, ap->abuffer + audio_buf_index, size_to_copy, SDL_MIX_MAXVOLUME);
+          }
 
           len -= size_to_copy;
           stream += size_to_copy;
