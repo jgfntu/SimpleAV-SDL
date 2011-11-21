@@ -392,6 +392,11 @@ double SASDL_get_video_duration(SASDLContext *sasdl_ctx)
      return SA_get_duration(sasdl_ctx->sa_ctx);
 }
 
+void SASDL_dump_info(SASDLContext *sasdl_ctx)
+{
+     SA_dump_info(sasdl_ctx->sa_ctx);
+}
+
 double SASDL_get_video_clock(SASDLContext *sasdl_ctx)
 {
      if(sasdl_ctx->status == SASDL_is_playing)
@@ -454,6 +459,7 @@ void _SASDL_fill_frame_cur_black(SASDLContext *sasdl_ctx)
      
      SDL_FillRect(sasdl_ctx->frame_cur, &full_screen, 0x000000);
 }
+
 #ifdef __cplusplus
 }
 #endif

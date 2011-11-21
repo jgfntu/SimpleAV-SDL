@@ -208,6 +208,9 @@ int SASDL_get_video_height(SASDLContext *);
 
 double SASDL_get_video_duration(SASDLContext *);
 
+// output video info to the console.
+void SASDL_dump_info(SASDLContext *);
+
 // it will tell you "where we are now".
 double SASDL_get_video_clock(SASDLContext *);
 
