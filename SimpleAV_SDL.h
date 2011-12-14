@@ -38,7 +38,7 @@ extern "C" {
 
 // the video status. i think they are self-descriptive enough.
 enum SASDLVideoStatus {
-     SASDL_is_playing, SASDL_is_paused, SASDL_is_stopped
+     SASDL_is_playing = 0, SASDL_is_paused, SASDL_is_stopped
 };
 
 // FIXME: I need ... a better threshold.
