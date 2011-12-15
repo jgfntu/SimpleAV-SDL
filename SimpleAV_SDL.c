@@ -169,6 +169,11 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
      if(vp == NULL) {
           sasdl_ctx->video_eof = TRUE;
           sasdl_ctx->frame_next = NULL;
+
+          // *FIXME*: is releasing the lock here proper?
+          //          (this line is a hack for saya)
+          SDL_mutexV(sasdl_ctx->ap_lock);
+          
           return -1;
      } else {
           sasdl_ctx->frame_next = vp->frame_ptr;
