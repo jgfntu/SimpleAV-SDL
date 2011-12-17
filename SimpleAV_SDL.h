@@ -99,6 +99,7 @@ typedef struct SASDLContext {
      // this controls whether SASDL_audio_decoder will overwrite data in the stream or not.
      // default value is FALSE: overwrite.
      int audio_decode_mix;
+     int audio_mix_volume;
 
      // i know you know i know you know this.
      SAContext *sa_ctx;
@@ -119,6 +120,16 @@ SASDLContext *SASDL_open(char *);
 
 // close files referenced by SAContext
 int SASDL_close(SASDLContext *);
+
+// this should be called with the second parameter equals to 1
+// if you need to mix other sounds.
+// or SASDL_audio_decode will just overwrite data in the given target buffer.
+void SASDL_set_audio_mix(SASDLContext *, int);
+
+// set mix volume of the audio output in SASDL_audio_decode().
+// should be called after enabling audio mix, or would be ignored.
+// the second parameter should be an integer between 0 and SDL_MIX_MAXVOLUME.
+void SASDL_set_mix_volume(SASDLContext *, int);
 
 
 

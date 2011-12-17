@@ -48,6 +48,8 @@ SASDLContext *SASDL_open(char *filename)
           // sasdl_ctx->start_time = 0.0f;
           
           sasdl_ctx->sa_ctx = sa_ctx;
+
+          sasdl_ctx->audio_mix_volume = SDL_MIX_MAXVOLUME;
      }
      
      int width = SASDL_get_video_width(sasdl_ctx);
@@ -103,6 +105,22 @@ int SASDL_close(SASDLContext *sasdl_ctx)
      
      free(sasdl_ctx);
      return 0;
+}
+
+void SASDL_set_audio_mix(SASDLContext *sasdl_ctx, int value)
+{
+     sasdl_ctx->audio_decode_mix = (value ? 1 : 0);
+}
+     
+void SASDL_set_mix_volume(SASDLContext *sasdl_ctx, int value) {
+     if(sasdl_ctx->audio_decode_mix) {
+          if(value < 0) {
+               value = 0;
+          } else if(value > SDL_MIX_MAXVOLUME) {
+               value = SDL_MIX_MAXVOLUME;
+          }
+          sasdl_ctx->audio_mix_volume = value;
+     }
 }
 
 void SASDL_play(SASDLContext *sasdl_ctx)
@@ -357,7 +375,8 @@ void SASDL_audio_decode(void *data, uint8_t *stream, int len)
           if(sasdl_ctx->audio_decode_mix == FALSE) {
                memcpy(stream, ap->abuffer + audio_buf_index, size_to_copy);
           } else {
-               SDL_MixAudio(stream, ap->abuffer + audio_buf_index, size_to_copy, SDL_MIX_MAXVOLUME);
+               SDL_MixAudio(stream, ap->abuffer + audio_buf_index,
+                            size_to_copy, sasdl_ctx->audio_mix_volume);
           }
 
           len -= size_to_copy;
