@@ -1,32 +1,34 @@
-libav_link = `pkg-config --libs libavcodec libavformat libavutil libswscale`
-sdl_link = -lSDL -lSDL_mixer
-simpleav_link = -lSimpleAV
+CFLAGS=-g -Wall -O2 `pkg-config --cflags SimpleAV sdl SDL_mixer`
+LIBS=`pkg-config --libs SimpleAV sdl SDL_mixer`
 
-simpleav_sdl_full_links = $(sdl_link) $(simpleav_link) $(libav_link)
+BUILD_DIR=build
 
-all: libSimpleAV_SDL.a saplayer
+all: libSimpleAV_SDL.so saplayer
 
-saplayer: SimpleAV_SDL.o saplayer.o
-	gcc -o saplayer SimpleAV_SDL.o saplayer.o $(simpleav_sdl_full_links)
+libSimpleAV_SDL.so: $(BUILD_DIR)/SimpleAV_SDL.o
+	gcc -shared -o libSimpleAV_SDL.so $(BUILD_DIR)/SimpleAV_SDL.o
 
-SimpleAV_SDL.o: SimpleAV_SDL.h SimpleAV_SDL.c
-	gcc -c SimpleAV_SDL.c $(simpleav_sdl_full_links)
+$(BUILD_DIR)/SimpleAV_SDL.o: SimpleAV_SDL.h SimpleAV_SDL.c
+	gcc $(CFLAGS) -fPIC -c SimpleAV_SDL.c -o $(BUILD_DIR)/SimpleAV_SDL.o
 
-saplayer.o: SimpleAV_SDL.h saplayer.c
-	gcc -c saplayer.c $(simpleav_sdl_full_links)
+saplayer: $(BUILD_DIR)/saplayer.o
+	gcc $(LIBS) -o saplayer $(BUILD_DIR)/saplayer.o -L. -lSimpleAV_SDL -lSimpleAV
 
-libSimpleAV_SDL.a: SimpleAV_SDL.o
-	ar cr libSimpleAV_SDL.a SimpleAV_SDL.o
+$(BUILD_DIR)/saplayer.o: SimpleAV_SDL.h saplayer.c
+	gcc $(CFLAGS) -c saplayer.c -o $(BUILD_DIR)/saplayer.o
 
 install:
+	mkdir -p /usr/local/bin /usr/local/lib # /usr/local/lib/pkgconfig
 	cp saplayer /usr/local/bin
-	cp libSimpleAV_SDL.a /usr/local/lib
+	cp libSimpleAV_SDL.so /usr/local/lib
 	cp SimpleAV_SDL.h /usr/local/include
+	ldconfig
 
 uninstall:
 	rm /usr/local/bin/saplayer
-	rm /usr/local/lib/libSimpleAV_SDL.a
+	rm /usr/local/lib/libSimpleAV_SDL.so
 	rm /usr/local/include/SimpleAV_SDL.h
+	ldconfig
 
 clean:
-	rm *.o saplayer libSimpleAV_SDL.a
+	rm $(BUILD_DIR)/*

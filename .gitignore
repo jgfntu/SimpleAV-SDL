@@ -1,4 +1,7 @@
-*.o
+build/*.o
 *~
+
 saplayer
-libSimpleAV_SDL.a
+
+# libSimpleAV_SDL.a
+libSimpleAV_SDL.so
