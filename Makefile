@@ -12,7 +12,7 @@ $(BUILD_DIR)/SimpleAV_SDL.o: SimpleAV_SDL.h SimpleAV_SDL.c
 	gcc $(CFLAGS) -fPIC -c SimpleAV_SDL.c -o $(BUILD_DIR)/SimpleAV_SDL.o
 
 saplayer: $(BUILD_DIR)/saplayer.o
-	gcc $(LIBS) -o saplayer $(BUILD_DIR)/saplayer.o -L. -lSimpleAV_SDL -lSimpleAV
+	gcc $(LIBS) -o saplayer $(BUILD_DIR)/saplayer.o -L. -lSimpleAV_SDL # -lSimpleAV
 
 $(BUILD_DIR)/saplayer.o: SimpleAV_SDL.h saplayer.c
 	gcc $(CFLAGS) -c saplayer.c -o $(BUILD_DIR)/saplayer.o
