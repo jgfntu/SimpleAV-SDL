@@ -1,0 +1,14 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: SimpleAV-SDL
+Description: The SDL binding to SimpleAV.
+Version: 0.1.0
+Requires: SimpleAV sdl SDL_mixer
+Requires.private:
+Conflicts:
+Libs: -L${libdir} -lSimpleAV_SDL -lSimpleAV
+Libs.private:
+Cflags:
