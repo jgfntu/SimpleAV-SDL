@@ -11,8 +11,11 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
+
 #include <libswscale/swscale.h>
+
 #include <SimpleAV.h>
 
 #include "SimpleAV_SDL.h"

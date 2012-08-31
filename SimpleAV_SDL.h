@@ -23,7 +23,8 @@ extern "C" {
 #endif
 
 
-#include <SDL/SDL.h>
+// #include <SDL/SDL.h>
+#include <SDL.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 #include <SimpleAV.h>
