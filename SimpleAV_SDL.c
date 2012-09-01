@@ -20,6 +20,17 @@ extern "C" {
 
 #include "SimpleAV_SDL.h"
 
+// private helper functions.
+
+// convert the video frame in sasdl_ctx->frame_next onto sasdl_ctx->frame_cur.
+static void _SASDL_convert_frame_next_to_cur(SASDLContext *);
+
+// fill sasdl_ctx->frame_cur with black.
+// currently only used in SASDL_draw() under "stopped" mode.
+static void _SASDL_fill_frame_cur_black(SASDLContext *);
+
+
+
 int SASDL_init(void)
 {
      // FIXME: "silent" mode?
@@ -171,8 +182,7 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
           seek_dst = 0.0f;
 
      // FIXME: how to seek precisely?
-     int ret = SA_seek(sasdl_ctx->sa_ctx, seek_dst,
-                       seek_dst - sasdl_ctx->frame_next_pts);
+     int ret = SA_seek(sasdl_ctx->sa_ctx, seek_dst);
      if(ret < 0)
           return ret;
 
@@ -459,10 +469,10 @@ int SASDL_eof(SASDLContext *sasdl_ctx)
 }
 
 ////
-//// here comes the "private" part.
+//// private helper methods.
 ////
 
-void _SASDL_convert_frame_next_to_cur(SASDLContext *sasdl_ctx)
+static void _SASDL_convert_frame_next_to_cur(SASDLContext *sasdl_ctx)
 {
      AVFrame *frame = sasdl_ctx->frame_next;
      SDL_Surface *surface = sasdl_ctx->frame_cur;
@@ -477,7 +487,7 @@ void _SASDL_convert_frame_next_to_cur(SASDLContext *sasdl_ctx)
      SDL_UnlockSurface(surface);
 }
 
-void _SASDL_fill_frame_cur_black(SASDLContext *sasdl_ctx)
+static void _SASDL_fill_frame_cur_black(SASDLContext *sasdl_ctx)
 {
      SDL_Rect full_screen = {
           .x = 0, .y = 0,

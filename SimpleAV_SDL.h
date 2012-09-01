@@ -166,15 +166,22 @@ int SASDL_stop(SASDLContext *);
 //     if called under "stopped" mode, the video status will be set to "paused".
 //     else the video status will stay untouched.
 //
-// currently, SASDL_seek does not do accurate seeking.
-// don't blame me... Hack it if you could do it.
+// so be careful if you are writing a video player; if an insane user keeps asking
+// "seek forward 10sec", SASDL will first seek to the end after a while, then
+// stop the video, and finally continue seeking forward under paused mode.
+//
+// *** BE CAREFUL: ***
+//     SimpleAV will always seek to the last key frame before the requested time.
+//     so this function is *NOT ACCURATE*.
 //
 // *** for developers only:
-// *** seek a little forehead.
 // *** don't forget to get frame_cur.
-int SASDL_seek(SASDLContext *, double);
+// (I wrote the previous line more than one year ago, and I don't know what it means now.
+//            -- wecing, Aug 31, 2012)
+int SASDL_seek(SASDLContext *, double seek_dst);
 
-
+// FIXME: implement it later.
+// int SASDL_seek_accurate(SASDLContext *, double seek_dst);
 
 /*
  * output: draw & delay & audio callback
@@ -237,18 +244,6 @@ int SASDL_video_is_stopped(SASDLContext *);
 
 // it will return true only when (sa_ctx->video_eof && sa_ctx->audio_eof) is true.
 int SASDL_eof(SASDLContext *);
-
-
-/*
- * private functions - don't use them!
- */
-
-// convert the video frame in sasdl_ctx->frame_next onto sasdl_ctx->frame_cur.
-void _SASDL_convert_frame_next_to_cur(SASDLContext *);
-
-// fill sasdl_ctx->frame_cur with black.
-// currently only used in SASDL_draw() under "stopped" mode.
-void _SASDL_fill_frame_cur_black(SASDLContext *);
 
 #endif
 
