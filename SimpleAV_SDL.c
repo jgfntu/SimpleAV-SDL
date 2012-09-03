@@ -29,7 +29,9 @@ static void _SASDL_convert_frame_next_to_cur(SASDLContext *);
 // currently only used in SASDL_draw() under "stopped" mode.
 static void _SASDL_fill_frame_cur_black(SASDLContext *);
 
-
+// called by SASDL_seek() and SASDL_seek_accurate().
+static int _SASDL_seek_internal(SASDLContext *sasdl_ctx,
+                                double seek_dst, int accurate);
 
 int SASDL_init(void)
 {
@@ -171,9 +173,18 @@ int SASDL_stop(SASDLContext *sasdl_ctx)
      return ret;
 }
 
+int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst) {
+     return _SASDL_seek_internal(sasdl_ctx, seek_dst, 0);
+}
+
+int SASDL_seek_accurate(SASDLContext *sasdl_ctx, double seek_dst) {
+     return _SASDL_seek_internal(sasdl_ctx, seek_dst, 1);
+}
+
 // currently, SASDL_seek() will return -1 on both EOF and error.
 // so the user should directly stop the video loop when receiving -1.
-int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
+static int _SASDL_seek_internal(SASDLContext *sasdl_ctx,
+                                double seek_dst, int accurate)
 {
      if(seek_dst >= SASDL_get_video_duration(sasdl_ctx))
           return SASDL_stop(sasdl_ctx);
@@ -181,7 +192,6 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
      if(seek_dst < 0.0f)
           seek_dst = 0.0f;
 
-     // FIXME: how to seek precisely?
      int ret = SA_seek(sasdl_ctx->sa_ctx, seek_dst);
      if(ret < 0)
           return ret;
@@ -195,7 +205,6 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
           sasdl_ctx->audio_buf_index = 0;
      }
 
-     // FIXME: not accurate seeking.
      SAVideoPacket *vp = SA_get_vp(sasdl_ctx->sa_ctx);
      if(vp == NULL) {
           sasdl_ctx->video_eof = TRUE;
@@ -217,9 +226,32 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
                _SASDL_fill_frame_cur_black(sasdl_ctx);
      }
 
-     // the real destination we reached.
-     seek_dst = sasdl_ctx->frame_next_pts;
-     
+     if (accurate) {
+          while (sasdl_ctx->frame_next_pts < seek_dst) {
+              vp = SA_get_vp(sasdl_ctx->sa_ctx);
+              if (vp == NULL) {
+                  sasdl_ctx->video_eof = TRUE;
+                  sasdl_ctx->frame_next = NULL;
+
+                  // FIXME: if the mutexV() out of the if-accurate statement
+                  //        is modified, change here as well.
+                  SDL_mutexV(sasdl_ctx->ap_lock);
+
+                  return -1;
+              } else {
+                  if (vp->pts > seek_dst) {
+                      _SASDL_convert_frame_next_to_cur(sasdl_ctx);
+                  }
+                  sasdl_ctx->frame_next = vp->frame_ptr;
+                  sasdl_ctx->frame_next_pts = vp->pts;
+                  SA_free_vp(vp);
+              }
+          }
+     } else {
+          // the real position we have reached.
+          seek_dst = sasdl_ctx->frame_next_pts;
+     }
+
      ap = SA_get_ap(sasdl_ctx->sa_ctx);
      if(ap == NULL) {
           sasdl_ctx->audio_eof = TRUE;
@@ -253,8 +285,6 @@ int SASDL_seek(SASDLContext *sasdl_ctx, double seek_dst)
 
      return ret;
 }
-
-
 
 /*
  * SASDL_draw() always draw the correct frame,

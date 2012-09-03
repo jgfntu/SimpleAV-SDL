@@ -180,8 +180,8 @@ int SASDL_stop(SASDLContext *);
 //            -- wecing, Aug 31, 2012)
 int SASDL_seek(SASDLContext *, double seek_dst);
 
-// FIXME: implement it later.
-// int SASDL_seek_accurate(SASDLContext *, double seek_dst);
+// same as SASDL_seek, but the accurate seeking version.
+int SASDL_seek_accurate(SASDLContext *, double seek_dst);
 
 /*
  * output: draw & delay & audio callback

@@ -105,7 +105,8 @@ int main(int argc, char *argv[])
                          continue;
                     }
 
-                    if(SASDL_seek(sasdl_ctx, SASDL_get_video_clock(sasdl_ctx) + delta) < 0)
+                    double seek_dst = SASDL_get_video_clock(sasdl_ctx) + delta;
+                    if(SASDL_seek_accurate(sasdl_ctx, seek_dst) < 0)
                          goto PROGRAM_QUIT;
 
                     SASDL_draw(sasdl_ctx, screen);
